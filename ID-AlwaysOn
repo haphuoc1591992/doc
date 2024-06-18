@@ -1,1 +1,12 @@
-Các bước cài đặt ID- cụm IIS-SQL AlwaysOn
+Các bước cài đặt ID - cụm IIS-SQL AlwaysOn
+1 - Chuẩn bị 5 server, 1 AD, 2 Web, 2 SQL
+2 - Chạy Sysprep trên cả 5 server
+3 - Đổi tên 5 server
+4 - Chuẩn bị đĩa cài WinServer , SQL
+5 - Cài đặt AD, đổi DNS setting của mạng
+6 - Đổi DNS trên card LAN của 2 WEB, 2 SQL
+7 - Cài đặt Net Frameword trên 4 server
+8 - Cài đặt các dịch vụ NLB , File Replicate, IIS. Chú ý các 2 server cùng loại không đc nằm trên cùng 1 host
+9 - Dịch vụ NLB chạy bằng unicast, test ping dup, cấu hình FilterICMP, cấu hình port rule
+10 - File Repplicate - cấu hình DNS trên card WAN- tăng size thư mục stag, cấp quyền cho user upload, IISUSRS
+11 - Cấu hình SSL sẵn cho IIS
