@@ -8,5 +8,14 @@ Các bước cài đặt ID - cụm IIS-SQL AlwaysOn
 7 - Cài đặt Net Frameword trên 4 server
 8 - Cài đặt các dịch vụ NLB , File Replicate, IIS. Chú ý các 2 server cùng loại không đc nằm trên cùng 1 host
 9 - Dịch vụ NLB chạy bằng unicast, test ping dup, cấu hình FilterICMP, cấu hình port rule
-10 - File Repplicate - cấu hình DNS trên card WAN- tăng size thư mục stag, cấp quyền cho user upload, IISUSRS
+10 - File Replicate - cấu hình DNS trên card WAN- tăng size thư mục stag, cấp quyền cho user upload, IISUSRS
 11 - Cấu hình SSL sẵn cho IIS
+12 - Cài đặt SQL, thiết lập user domain chung cho dịch vụ, đăng nhập user đó cho dịch vụ server và browser
+13 - Mở port firewall cho SQL và AlwaysOn Endpoint
+14 - Cấu hình Failove Cluster - Cấu hình DNS card WAN
+15 - Tạo Share Folder Trên AD để chạy backup, trên SQL2 để chạy AlwayOn
+16 - Tạo db để add test AG
+17 - Add user cấp quyền DB
+18 - Test DB sync, Check lỗi của Failover Cluster, Test khởi động lại
+19 - Test sync source trên 2 WEB, test NLB chạy share tải
+20 - Tắt auto update
