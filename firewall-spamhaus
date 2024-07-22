@@ -1,0 +1,73 @@
+import requests
+import subprocess
+
+def download_ip_list(url):
+    response = requests.get(url)
+    response.raise_for_status()
+    ip_list = [line.split(';')[0].strip() for line in response.text.splitlines() if line and not line.startswith(';')]
+    return ip_list
+
+def clear_iptables_rules():
+    subprocess.run(["sudo", "iptables", "-F"])
+    print("Cleared all iptables rules.")
+
+def block_ips_iptables(blocked_ips):
+    for ip in blocked_ips:
+        subprocess.run(["sudo", "iptables", "-A", "INPUT", "-s", ip, "-j", "DROP"])
+    print("Blocked IPs using iptables.")
+
+# Download IP lists
+drop_url = "https://www.spamhaus.org/drop/drop.txt"
+edrop_url = "https://www.spamhaus.org/drop/edrop.txt"
+
+drop_ips = download_ip_list(drop_url)
+edrop_ips = download_ip_list(edrop_url)
+
+blocked_ips = drop_ips + edrop_ips
+print(f"Downloaded {len(blocked_ips)} IPs to block.")
+
+# Clear previous iptables rules
+clear_iptables_rules()
+
+# Apply new blocking rules
+block_ips_iptables(blocked_ips)
+
+===================================================
+
+import requests
+import subprocess
+
+def download_ip_list(url):
+    response = requests.get(url)
+    response.raise_for_status()
+    ip_list = [line.split(';')[0].strip() for line in response.text.splitlines() if line and not line.startswith(';')]
+    return ip_list
+
+def clear_firewalld_rules():
+    # This assumes all rules are part of the 'drop' zone.
+    existing_rules = subprocess.run(["sudo", "firewall-cmd", "--zone=drop", "--list-sources"], capture_output=True, text=True)
+    for ip in existing_rules.stdout.split():
+        subprocess.run(["sudo", "firewall-cmd", "--zone=drop", "--remove-source", ip])
+    print("Cleared all firewalld rules in the drop zone.")
+
+def block_ips_firewalld(blocked_ips):
+    for ip in blocked_ips:
+        subprocess.run(["sudo", "firewall-cmd", "--zone=drop", "--add-source", ip])
+    subprocess.run(["sudo", "firewall-cmd", "--runtime-to-permanent"])
+    print("Blocked IPs using firewalld.")
+
+# Download IP lists
+drop_url = "https://www.spamhaus.org/drop/drop.txt"
+edrop_url = "https://www.spamhaus.org/drop/edrop.txt"
+
+drop_ips = download_ip_list(drop_url)
+edrop_ips = download_ip_list(edrop_url)
+
+blocked_ips = drop_ips + edrop_ips
+print(f"Downloaded {len(blocked_ips)} IPs to block.")
+
+# Clear previous firewalld rules
+clear_firewalld_rules()
+
+# Apply new blocking rules
+block_ips_firewalld(blocked_ips)
