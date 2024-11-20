@@ -1,2 +1,80 @@
 wget https://dl.min.io/server/minio/release/linux-amd64/archive/minio.RELEASE.2020-10-28T08-16-50Z
 wget https://github.com/minio/mc/archive/refs/tags/RELEASE.2020-06-26T19-56-55Z.tar.gz
+mv minio.RELEASE.2020-10-28T08-16-50Z minio
+chmod +x minio
+#---Create file /etc/systemd/system/minio.service
+########################################
+[Unit]
+Description=Minio
+Documentation=https://docs.minio.io
+Wants=network-online.target
+After=network-online.target
+AssertFileIsExecutable=/usr/local/bin/minio
+
+[Service]
+WorkingDirectory=/data
+#User=minioadmin
+#Group=minioadmin
+
+EnvironmentFile=-/etc/default/minio
+ExecStartPre=/bin/bash -c "if [ -z \"${MINIO_VOLUMES}\" ]; then echo \"Variable MINIO_VOLUMES not set in /etc/default/minio\"; exit 1; fi"
+ExecStart=/usr/local/bin/minio server $MINIO_OPTS $MINIO_VOLUMES
+
+# Let systemd restart this service always
+Restart=always
+
+# Specifies the maximum file descriptor number that can be opened by this process
+LimitNOFILE=65536
+
+# Disable timeout logic and wait until process is stopped
+TimeoutStopSec=infinity
+SendSIGKILL=no
+
+[Install]
+WantedBy=multi-user.target
+######################################
+mv minio /usr/local/bin/
+mkdir -p /data
+#---Create file /etc/default/minio
+########################################
+#MINIO_ROOT_USER="minio"
+# Volume to be used for Minio server.
+MINIO_VOLUMES="/data"
+# Use if you want to run Minio on a custom port.
+#MINIO_OPTS="--certs-dir /etc/minio/certs --address s3.acegame.vn:9000"
+MINIO_OPTS=""
+# Access Key of the server.
+MINIO_ACCESS_KEY=PAICTMWYQURCJSXUEUYP
+# Secret key of the server.
+MINIO_SECRET_KEY=ebY7hzUNqT40jo0AVG9G0WaX0m5FFZ
+#MINIO_ROOT_PASSWORD="ebY7hzUNqT40jo0AVG9G0WaX0m5FFZ"
+#MINIO_ROOT_USER=minioadmin
+#MINIO_ROOT_PASSWORD=Rc3OzCzpQbk$
+########################################
+apt install make
+============================================================
+cat minio-create-user
+
+#!/bin/bash
+# run command : minio-create-user <user>
+USER=$1
+PASSWORD=`date +%s | sha256sum | base64 | head -c 16 ; echo`
+HOME=/data/$USER
+
+mkdir  -p /data/$USER
+#create user
+useradd $USER -g cdn -d $HOME -s /bin/bash
+echo -e "$PASSWORD\n$PASSWORD" | passwd $USER
+
+#create policy and user for s3cmd
+cp /opt/minio/s3-policy/template.json /opt/minio/s3-policy/$USER.json
+sed -i "s/template/$USER/g" /opt/minio/s3-policy/$USER.json
+mc -C /root/.mc admin policy add cdn "$USER"_readwrite /opt/minio/s3-policy/$USER.json
+mc -C /root/.mc admin user add cdn $USER $PASSWORD
+mc -C /root/.mc admin policy set cdn "$USER"_readwrite user=$USER
+
+####################
+echo "User: $USER" >> /opt/minio/s3-policy/$USER.txt
+echo "Password: $PASSWORD" >> /opt/minio/s3-policy/$USER.txt
+echo "Path: $HOME" >> /opt/minio/s3-policy/$USER.txt
+
