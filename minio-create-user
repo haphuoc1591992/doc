@@ -1,0 +1,44 @@
+#!/bin/bash
+# run command : minio-create-user <user>
+USER=$1
+PASSWORD=`date +%s | sha256sum | base64 | head -c 16 ; echo`
+HOME=/data/$USER
+
+mkdir  -p /data/$USER
+#create user
+useradd $USER -g cdn -d $HOME -s /bin/bash
+echo -e "$PASSWORD\n$PASSWORD" | passwd $USER
+
+#create policy and user for s3cmd
+cp /opt/minio/s3-policy/template.json /opt/minio/s3-policy/$USER.json
+sed -i "s/template/$USER/g" /opt/minio/s3-policy/$USER.json
+mc -C /root/.mc admin policy add cdn "$USER"_readwrite /opt/minio/s3-policy/$USER.json
+mc -C /root/.mc admin user add cdn $USER $PASSWORD
+mc -C /root/.mc admin policy set cdn "$USER"_readwrite user=$USER
+####################
+clear
+echo "User: $USER"
+echo "Password: $PASSWORD"
+echo "Path: $HOME"
+echo "==========S3CMD=========="
+echo "host_base = s3.joyplay.vn"
+echo "host_bucke = s3.joyplay.vn"
+echo "bucket_location = us-east-1"
+echo "use_https = True"
+echo "access_key =  $USER"
+echo "secret_key = $PASSWORD"
+echo "signature_v2 = False"
+echo "----------------------------"
+echo "User info save path : /opt/minio/user/$USER.txt"
+####################
+echo "User: $USER" >> /opt/minio/user/$USER.txt
+echo "Password: $PASSWORD" >> /opt/minio/user/$USER.txt
+echo "Path: $HOME" >> /opt/minio/user/$USER.txt
+echo "==========S3CMD=========="
+echo "host_base = s3.joyplay.vn" >> /opt/minio/user/$USER.txt
+echo "host_bucke = s3.joyplay.vn" >> /opt/minio/user/$USER.txt
+echo "bucket_location = us-east-1"  >> /opt/minio/user/$USER.txt
+echo "use_https = True" >> /opt/minio/user/$USER.txt
+echo "access_key =  $USER" >> /opt/minio/user/$USER.txt
+echo "secret_key = $PASSWORD" >> /opt/minio/user/$USER.txt
+echo "signature_v2 = False" >> /opt/minio/user/$USER.txt
