@@ -51,30 +51,52 @@ MINIO_SECRET_KEY=ebY7hzUNqT40jo0AVG9G0WaX0m5FFZ
 #MINIO_ROOT_USER=minioadmin
 #MINIO_ROOT_PASSWORD=Rc3OzCzpQbk$
 ########################################
+wget https://go.dev/dl/go1.13.3.linux-amd64.tar.gz
+tar -C /usr/local -xzf go1.13.3.linux-amd64.tar.gz
+export PATH=$PATH:/usr/local/go/bin >> /root/.bashrc
+
 apt install make
-============================================================
-cat minio-create-user
+tar zxvf RELEASE.2020-06-26T19-56-55Z.tar.gz
+cd mc-RELEASE.2020-06-26T19-56-55Z/buildscripts/
+./checkdeps.sh
+./cross-compile.sh
+cp mc /usr/bin/
+cat .mc/config.json
+{
+        "version": "9",
+        "hosts": {
+                "gcs": {
+                        "url": "https://storage.googleapis.com",
+                        "accessKey": "YOUR-ACCESS-KEY-HERE",
+                        "secretKey": "YOUR-SECRET-KEY-HERE",
+                        "api": "S3v2",
+                        "lookup": "dns"
+                },
+                "cdn": {
+                        "url": "http://localhost:9000",
+                        "accessKey": "PAICTMWYQURCJSXUEUYP",
+                        "secretKey": "ebY7hzUNqT40jo0AVG9G0WaX0m5FFZ",
+                        "api": "S3v4",
+                        "lookup": "auto"
+                },
+                "play": {
+                        "url": "https://play.min.io",
+                        "accessKey": "Q3AM3UQ867SPQQA43P2F",
+                        "secretKey": "zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG",
+                        "api": "S3v4",
+                        "lookup": "auto"
+                },
+                "s3": {
+                        "url": "https://s3.amazonaws.com",
+                        "accessKey": "YOUR-ACCESS-KEY-HERE",
+                        "secretKey": "YOUR-SECRET-KEY-HERE",
+                        "api": "S3v4",
+                        "lookup": "dns"
+                }
+        }
+}
 
-#!/bin/bash
-# run command : minio-create-user <user>
-USER=$1
-PASSWORD=`date +%s | sha256sum | base64 | head -c 16 ; echo`
-HOME=/data/$USER
 
-mkdir  -p /data/$USER
-#create user
-useradd $USER -g cdn -d $HOME -s /bin/bash
-echo -e "$PASSWORD\n$PASSWORD" | passwd $USER
 
-#create policy and user for s3cmd
-cp /opt/minio/s3-policy/template.json /opt/minio/s3-policy/$USER.json
-sed -i "s/template/$USER/g" /opt/minio/s3-policy/$USER.json
-mc -C /root/.mc admin policy add cdn "$USER"_readwrite /opt/minio/s3-policy/$USER.json
-mc -C /root/.mc admin user add cdn $USER $PASSWORD
-mc -C /root/.mc admin policy set cdn "$USER"_readwrite user=$USER
 
-####################
-echo "User: $USER" >> /opt/minio/s3-policy/$USER.txt
-echo "Password: $PASSWORD" >> /opt/minio/s3-policy/$USER.txt
-echo "Path: $HOME" >> /opt/minio/s3-policy/$USER.txt
 
