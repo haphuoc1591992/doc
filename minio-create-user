@@ -8,6 +8,7 @@ mkdir  -p /data/$USER
 #create user
 useradd $USER -g cdn -d $HOME -s /bin/bash
 echo -e "$PASSWORD\n$PASSWORD" | passwd $USER
+chown -R "$USER":cdn /data/$USER
 
 #create policy and user for s3cmd
 cp /opt/minio/s3-policy/template.json /opt/minio/s3-policy/$USER.json
@@ -15,6 +16,10 @@ sed -i "s/template/$USER/g" /opt/minio/s3-policy/$USER.json
 mc -C /root/.mc admin policy add cdn "$USER"_readwrite /opt/minio/s3-policy/$USER.json
 mc -C /root/.mc admin user add cdn $USER $PASSWORD
 mc -C /root/.mc admin policy set cdn "$USER"_readwrite user=$USER
+
+#add-cron job
+echo "/1 * * * * chown -R $USER:cdn /data/$USER" | crontab -
+
 ####################
 clear
 echo "User: $USER"
